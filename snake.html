@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="By visiting this website, you are accepting the cookie policy. For more information, click here.">
+    <title>TheGeekDevz - Snake Game</title>
+    <link rel="icon" type="image/jpeg" href="thegeekdevz.jpg">
+    <style>
+        body { margin: 0; background: #0d1117; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; touch-action: manipulation; }
+        #score-board { font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #c9d1d9; }
+        .game-box { position: relative; width: 90vw; max-width: 360px; aspect-ratio: 1; }
+        canvas { background: #161b22; border: 3px solid #30363d; border-radius: 6px; width: 100%; height: 100%; }
+        #start-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 12px 24px; font-size: 18px; font-weight: bold; color: #fff; background: #238636; border: none; border-radius: 6px; cursor: pointer; z-index: 10; }
+        .pad { display: grid; grid-template-columns: repeat(3, 55px); grid-template-rows: repeat(3, 55px); gap: 8px; margin-top: 15px; }
+        .btn { background: #21262d; border: 2px solid #30363d; border-radius: 50%; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        #u { grid-column: 2; grid-row: 1; } #l { grid-column: 1; grid-row: 2; } #r { grid-column: 3; grid-row: 2; } #d { grid-column: 2; grid-row: 3; }
+        @media (min-width: 768px) { .pad { display: none; } }
+    </style>
+</head>
+<body>
+
+    <div id="score-board">SCORE: <span id="score">0</span></div>
+    <div class="game-box">
+        <button id="start-btn" onclick="start()">START</button>
+        <canvas id="c" width="400" height="400"></canvas>
+    </div>
+
+    <div class="pad">
+        <button class="btn" id="u" onclick="dir(0,-1)">▲</button>
+        <button class="btn" id="l" onclick="dir(-1,0)">◀</button>
+        <button class="btn" id="r" onclick="dir(1,0)">▶</button>
+        <button class="btn" id="d" onclick="dir(0,1)">▼</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("c"), ctx = canvas.getContext("2d"), scoreId = document.getElementById("score"), btn = document.getElementById("start-btn");
+        const size = 20, count = 20;
+        let snake = [{x:10, y:10}], food = {x:5, y:5}, dx = 1, dy = 0, score = 0, active = false;
+
+        // Dibujo inicial estático
+        draw();
+
+        function start() { active = true; btn.style.display = "none"; loop(); }
+
+        function loop() {
+            if (!active) return;
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            
+            if (head.x < 0 || head.x >= count || head.y < 0 || head.y >= count || snake.some(p => p.x === head.x && p.y === head.y)) {
+                ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(0, 0, 400, 400);
+                ctx.fillStyle = "#ff7b72"; ctx.font = "bold 30px sans-serif"; ctx.textAlign = "center";
+                ctx.fillText("GAME OVER", 200, 200); return;
+            }
+
+            snake.unshift(head);
+            if (head.x === food.x && head.y === food.y) {
+                score++; scoreId.innerText = score;
+                food = {x: Math.floor(Math.random()*count), y: Math.floor(Math.random()*count)};
+            } else { snake.pop(); }
+
+            draw(); setTimeout(loop, 100);
+        }
+
+        function draw() {
+            ctx.fillStyle = "#161b22"; ctx.fillRect(0, 0, 400, 400);
+            ctx.fillStyle = "#ff7b72"; ctx.fillRect(food.x*size, food.y*size, size, size);
+            snake.forEach((p, i) => { ctx.fillStyle = i===0 ? "#3fb950" : "#238636"; ctx.fillRect(p.x*size, p.y*size, size-2, size-2); });
+        }
+
+        function dir(x, y) { if (active && (x !== -dx || y !== -dy)) { dx = x; dy = y; } }
+
+        window.addEventListener("keydown", e => {
+            if (e.key === "ArrowUp") dir(0, -1); if (e.key === "ArrowDown") dir(0, 1);
+            if (e.key === "ArrowLeft") dir(-1, 0); if (e.key === "ArrowRight") dir(1, 0);
+            if (["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code)) e.preventDefault();
+        });
+    </script>
+</body>
+</html>
